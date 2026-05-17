@@ -1,0 +1,19 @@
+step 1 :
+kalian chmod dlu semua nya
+
+tempel ke terminal sesuai kan path dir -> find /var/www -type f -print0 | xargs -0 chmod 444
+
+tempel ke terminal sesuai kan path dir -> find /var/www -type d -print0 | xargs -0 chmod 555
+
+
+
+setelah putih semua lalu kalian bisa langsung ke arah auto chmod nya 
+
+step 2 : 
+
+tempel ke terminal sesuai kan path dir -> while true; do find /var/www/ -type d ! -perm 555 -exec chmod 555 {} \;; sleep 1; done
+
+tempel ke terminal sesuai kan path dir -> while true; do find /var/www/ -type f ! -perm 444 -exec chmod 444 {} \;; sleep 1; done
+
+ni kalo mau di umpetin pake base64
+echo 'd2hpbGUgdHJ1ZTsgZG8gZWNobyAiaGVsbG8iOyBzbGVlcCA1OyBkb25lCg==' | base64 -d | bash
