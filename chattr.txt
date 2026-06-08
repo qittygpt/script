@@ -1,0 +1,9 @@
+chattr x lock : 
+
+
+lsattr en
+# atau
+lsattr -d en
+
+chattr -i namafile/folder = untuk unlock
+chattr +i namafile/folder = untuk lock
